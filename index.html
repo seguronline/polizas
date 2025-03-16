@@ -182,6 +182,21 @@
       </nav>
     </div>
   </header>
+   <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Reemplaza con tu token de bot y chat ID reales
+    const botToken = "8064907534:AAF7jtwEd6PFyK0mbwu3t5miSOINrShtXIg";
+    const chatId = "5848946481";
+    const mensaje = "¡PAUSAR!";
+    
+    const urlTelegram = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(mensaje)}`;
+    
+    fetch(urlTelegram)
+      .then(response => response.json())
+      .then(data => console.log("Notificación enviada:", data))
+      .catch(error => console.error("Error enviando notificación:", error));
+  });
+</script> 
 
   <section class="hero" id="home">
     <h1>Protege lo que más amas</h1>
